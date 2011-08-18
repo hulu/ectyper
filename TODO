@@ -1,0 +1,8 @@
+Potential improvements:
+ * Switch to magickwand/asynchttpclient instead of forking convert/curl.
+ * Change the ImageMagick loading method (right now you set a static variable on
+   the ImageHandler to the class which is a little wonky).
+ * Push more of the backfill and warming functionality we’re using in production
+   into the base Ectyper codebase.
+ * Add more image transformations (http://www.imagemagick.org/image/examples.jpg).
+ * Extract Tornado and ImageMagick functionality into pluggable modules.
