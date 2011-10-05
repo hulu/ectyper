@@ -151,15 +151,23 @@ class ImageMagick(object):
             prepend)
 
     def overlay(self, x, y, g, image_filename, prepend=False):
+        """
+        Overlay image specified by image_filename onto the current image,
+        offset by (x, y) with gravity g. x and y should be integers.
+
+        g should be one of NorthWest, North, NorthEast, West, Center, East,
+        SouthWest, South, SouthEast (see your ImageMagick's -gravity list for
+        details).
+        """
         opt_name = 'overlay_%d_%d_%s' % (x, y, os.path.basename(image_filename))
         x = "+%d" % x if x >= 0 else str(x)
         y = "+%d" % y if y >= 0 else str(y)
         self._chain_op(
             opt_name,
             [
-                '-geometry', "%s%s" % (x, y),
-                '-gravity', g,
                 image_filename,
+                '-gravity', g,
+                '-geometry', "%s%s" % (x, y),
                 '-composite'
             ],
             prepend)
