@@ -150,6 +150,20 @@ class ImageMagick(object):
             ['-gravity', g, '-crop', '%sx%s%s%s' % (w, h, x, y)],
             prepend)
 
+    def overlay(self, x, y, g, image_filename, prepend=False):
+        opt_name = 'overlay_%d_%d_%s' % (x, y, os.path.basename(image_filename))
+        x = "+%d" % x if x >= 0 else str(x)
+        y = "+%d" % y if y >= 0 else str(y)
+        self._chain_op(
+            opt_name,
+            [
+                '-geometry', "%s%s" % (x, y),
+                '-gravity', g,
+                image_filename,
+                '-composite'
+            ],
+            prepend)
+
     def resize(self, w, h, maintain_ratio, prepend=False):
         """
         Resizes the image to the given size.  w and h are expected to be
