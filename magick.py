@@ -84,6 +84,19 @@ class ImageMagick(object):
     JPEG = "jpeg"
     PNG = "png"
 
+    GRAVITIES = {
+        "left": "West",
+        "right": "East",
+        "top": "North",
+        "bottom": "South",
+        "middle": "Center",
+        "center": "Center",
+        "topleft": "NorthWest",
+        "topright": "NorthEast",
+        "bottomleft": "SouthWest",
+        "bottomright": "SouthEast",
+    }
+
     def __init__(self):
         ""
         self.options = []
@@ -172,16 +185,25 @@ class ImageMagick(object):
             ],
             prepend)
 
-    def resize(self, w, h, maintain_ratio, prepend=False):
+    def resize(self, w, h, maintain_ratio, will_crop, prepend=False):
         """
         Resizes the image to the given size.  w and h are expected to be
         positive integers.  If maintain_ratio evaluates to True, the original
-        aspect ratio of the image will be preserved.
+        aspect ratio of the image will be preserved. With maintain_ratio True:
+        if will_crop is true, then the result will fill and possibly overflow
+        the dimensions; otherwise it will scale to fit inside the dimensions.
         """
-        name = 'resize_%d_%d_%d' % (w, h, 1 if maintain_ratio else 0)
+
+        resize_type = 1
         size = "%dx%d" % (w, h)
         if not maintain_ratio:
             size += "!"
+            resize_type = 0
+        elif will_crop:
+            size += "^"
+            resize_type = 2
+
+        name = 'resize_%d_%d_%d' % (w, h, resize_type)
         opt = ['-resize', size]
         self._chain_op(name, opt, prepend)
 

@@ -59,6 +59,17 @@ class ImageHandler(RequestHandler):
         Builds an ImageMagick object according to the given parameters.
         By default it supports the following params:
 
+         &crop=1
+            Crops the image, maintaining aspect ratio, when resizing
+            (ignored if size is not provided or maintain_ratio is not 1).
+            Defaults to 0.
+
+         &crop_anchor=(top|bottom|left|right|center|middle|topleft|topright
+            |bottomleft|bottomright)
+            Anchors the crop to one location of the image.
+            (ignored if crop and maintain_ratio are not both 1).
+            Defaults to center
+
          &size=NxM
             Resize the source image to N pixels wide and M pixels high.
 
@@ -94,13 +105,21 @@ class ImageHandler(RequestHandler):
 
         size = self.parse_size(self.get_argument("size", None))
         reflection_height = self.get_argument("reflection_height", None)
+        maintain_ratio = int(self.get_argument("maintain_ratio", 0)) == 1
+        crop = int(self.get_argument("crop", 0)) == 1
+        crop_anchor = self.get_argument("crop_anchor", "center")
 
-        # size=&maintain_ratio=
+        # size=&maintain_ratio=&crop=&crop_anchor=
         if size:
             (w, h) = size
-            maintain_ratio = self.get_argument("maintain_ratio", 0)
-            magick.resize(w, h, int(maintain_ratio) == 1)
-            if not reflection_height:
+            magick.resize(w, h, maintain_ratio, crop)
+            if maintain_ratio and crop:
+                direction = magick.GRAVITIES[crop_anchor]
+                # repage before and after we crop.
+                magick.options.append("+repage")
+                magick.crop(w, h, 0, 0, direction)
+                magick.options.append("+repage")
+            elif not reflection_height:
                 magick.constrain(w, h)
 
         # reflection_height=&reflection_alpha_top=&reflection_alpha_bottom=
