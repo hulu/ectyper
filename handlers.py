@@ -77,6 +77,19 @@ class ImageHandler(RequestHandler):
             Maintain aspect ratio when resizing (ignored if size is not
             provided).
 
+         &post_crop_size=NxM
+            Applies a secondary "post-crop" to the image, after the standard
+            image resize is performed. This supports the case where an image 
+            needs to be sized to fit a particular dimension using a crop, 
+            then the image needs to be chopped up into different regions.
+            Defaults to None, meaning that no post-crop is applied.
+
+         &post_crop_anchor=(top|bottom|left|right|center|middle|topleft|topright
+            |bottomleft|bottomright)
+            Anchors the post-crop to one location of the image.
+            (ignored if post_crop_size does not exist or is invalid).
+            Defaults to center
+
          &reflection_height=N
             Flip the image upside down and apply a gradient to mimic a
             reflected image.  reflection_alpha_top and reflection_alpha_bottom
@@ -108,6 +121,8 @@ class ImageHandler(RequestHandler):
         maintain_ratio = int(self.get_argument("maintain_ratio", 0)) == 1
         crop = int(self.get_argument("crop", 0)) == 1
         crop_anchor = self.get_argument("crop_anchor", "center")
+        post_crop_size = self.parse_size(self.get_argument("post_crop_size", None))
+        post_crop_anchor = self.get_argument("post_crop_anchor", "center")
 
         # size=&maintain_ratio=&crop=&crop_anchor=
         if size:
@@ -121,6 +136,15 @@ class ImageHandler(RequestHandler):
                 magick.options.append("+repage")
             elif not reflection_height:
                 magick.constrain(w, h)
+
+        # post_crop_size=&post_crop_anchor=
+        if post_crop_size:
+            (w, h) = post_crop_size
+            direction = magick.GRAVITIES[post_crop_anchor]
+            # repage before and after we crop.
+            magick.options.append("+repage")
+            magick.crop(w, h, 0, 0, direction)
+            magick.options.append("+repage")
 
         # reflection_height=&reflection_alpha_top=&reflection_alpha_bottom=
         if reflection_height:
