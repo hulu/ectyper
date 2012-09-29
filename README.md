@@ -67,33 +67,53 @@ Full list of options supported by default:
 
     size=NxM
        Resize the source image to N pixels wide and M pixels high.
- 
+
+    crop=1
+       Crops the image, maintaining aspect ratio, when resizing
+       (ignored if size is not provided or maintain_ratio is not 1).
+       Defaults to 0.
+
+    crop_anchor=(top|bottom|left|right|center|middle|topleft|topright
+       |bottomleft|bottomright)
+       Anchors the crop to one location of the image.
+       (ignored if crop and maintain_ratio are not both 1).
+       Defaults to center
+
     maintain_ratio=1
        Maintain aspect ratio when resizing (ignored if size is not
-       provided).  If requested size is a different aspect ratio than
-       the source image, the resize will scale to fit the width or height,
-       whichever is reached first.  The other dimension will be centered
-       vertically or horizontally as necessary.  Defaults to 0.
- 
+       provided).
+
+    post_crop_size=NxM
+       Applies a secondary "post-crop" to the image, after the standard
+       image resize is performed. This supports the case where an image 
+       needs to be sized to fit a particular dimension using a crop, 
+       then the image needs to be chopped up into different regions.
+       Defaults to None, meaning that no post-crop is applied.
+
+    post_crop_anchor=(top|bottom|left|right|center|middle|topleft|topright
+       |bottomleft|bottomright)
+       Anchors the post-crop to one location of the image.
+       (ignored if post_crop_size does not exist or is invalid).
+       Defaults to center
+
     reflection_height=N
-       Flip the image upside down and apply a gradient to mimic a reflected
-       image.  reflection_alpha_top and reflection_alpha_bottom can be used to
-       set the gradient parameters.
- 
+       Flip the image upside down and apply a gradient to mimic a
+       reflected image.  reflection_alpha_top and reflection_alpha_bottom
+       can be used to set the gradient parameters.
+
     reflection_alpha_top=N
-       The top value to use when generating the gradient for reflection_height,
-       ignored if that parameter is not set.  Should be between 0 and 1.
-       Defaults to 1.  Note that reflection alpha only works properly with
-       format=png output.
- 
+       The top value to use when generating the gradient for
+       reflection_height, ignored if that parameter is not set.  Should be
+       between 0 and 1. Defaults to 1.
+
     reflection_alpha_bottom=N
        The bottom value to use when generating the gradient for
        reflection_height, ignored if that parameter is not set.  Should be
        between 0 and 1.  Defaults to 0.
- 
+
     format=(jpeg|png|png16)
-       Format to convert the image into.  png16 is 24-bit png pre-dithered
-       for 16-bit (RGB555) screens.  Defaults to jpeg.
+       Format to convert the image into.  Defaults to jpeg.
+       png16 is 24-bit png pre-dithered for 16-bit (RGB555) screens.
 
 Examples
 ==========

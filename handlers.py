@@ -59,6 +59,9 @@ class ImageHandler(RequestHandler):
         Builds an ImageMagick object according to the given parameters.
         By default it supports the following params:
 
+         &size=NxM
+            Resize the source image to N pixels wide and M pixels high.
+
          &crop=1
             Crops the image, maintaining aspect ratio, when resizing
             (ignored if size is not provided or maintain_ratio is not 1).
@@ -69,9 +72,6 @@ class ImageHandler(RequestHandler):
             Anchors the crop to one location of the image.
             (ignored if crop and maintain_ratio are not both 1).
             Defaults to center
-
-         &size=NxM
-            Resize the source image to N pixels wide and M pixels high.
 
          &maintain_ratio=1
             Maintain aspect ratio when resizing (ignored if size is not
