@@ -36,6 +36,9 @@ class ImageHandler(RequestHandler):
         self.handler(*args)
 
     def parse_size(self, size):
+        return self.parse_2d_param(size)
+
+    def parse_2d_param(self, size):
         """
         Parses a string 'NxM' into a 2-tuple.  If either N or M parses into
         a float, it's rounded to the nearest int.  If either value doesn't
@@ -108,6 +111,29 @@ class ImageHandler(RequestHandler):
          &format=(jpeg|png|png16)
             Format to convert the image into.  Defaults to jpeg.
             png16 is 24-bit png pre-dithered for 16-bit (RGB555) screens.
+
+         &normalize=1
+            Histogram-based contrast increase. It passes the -normalize operator to ImageMagick.
+            The top two percent of the dark pixels will become black and the top one percent of the 
+            light pixels will become white. The contrast of the rest of the pixels are maximized.
+            All the channels are normalized together to avoid color shift, so pure black or white 
+            may not exist in the final image. Defaults to 0, which won't chain any operator to the
+            ImageMagick command.
+
+         &equalize=1
+            Histogram-based colour redistribution. It passes the -equalize operator to ImageMagick, 
+            behind the -normalize operator. It redistributes the colour of the image according to 
+            uniform distribution. Each channel are changed independently, and color shift may happen.
+            Default to 0, which won't chain any operator to the ImageMagick command.
+
+         &contrast_stretch=axb
+            Histogram-based contrast adjustment. It passes the -contrast-stretch a%xb% operator to 
+            ImageMagick, behand the -equalize operator. The top a percent of the dark pixels will 
+            become black and the top b percent of the light pixels will become white. The contrast 
+            of the rest of the pixels are maximized. All the channels are normalized together to avoid 
+            color shift, so pure black or white may not exist in the final image. Defaults to 0, which 
+            won't chain any operator to the ImageMagick command.
+
         """
 
         # Already calculated options, bail.
@@ -123,6 +149,9 @@ class ImageHandler(RequestHandler):
         crop_anchor = self.get_argument("crop_anchor", "center")
         post_crop_size = self.parse_size(self.get_argument("post_crop_size", None))
         post_crop_anchor = self.get_argument("post_crop_anchor", "center")
+        normalize = int(self.get_argument("normalize", 0)) == 1
+        equalize = int(self.get_argument("equalize", 0)) == 1
+        contrast_stretch = self.parse_2d_param(self.get_argument("contrast_stretch", None))
 
         # size=&maintain_ratio=&crop=&crop_anchor=
         if size:
@@ -161,6 +190,19 @@ class ImageHandler(RequestHandler):
 
             if reflection_height:
                 magick.reflect(reflection_height, top, bottom)
+
+        # normalize=1
+        if normalize:
+            magick.normalize()
+
+        # equalize=1
+        if equalize:
+            magick.equalize()
+
+        # contrast_stretch=axb
+        if contrast_stretch:
+            a, b = contrast_stretch
+            magick.contrast_stretch(a, b)
 
         magick.format = magick.JPEG
         format_param = self.get_argument("format", "").lower()

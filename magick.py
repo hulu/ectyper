@@ -223,6 +223,33 @@ class ImageMagick(object):
             ],
             prepend)
 
+    def normalize(self, prepend=False):
+        """
+        Add -normalize operator. The top two percent of the dark pixels will become 
+        black and the top one percent of the light pixels will become white. The 
+        contrast of the rest of the pixels are maximized.
+        """
+        self._chain_op("normalize", ["-normalize"], prepend)
+
+    def equalize(self, prepend=False):
+        """
+        Add the -equalize operator. It redistributes the colour of the image uniformly.
+        """
+        self._chain_op("equalize", ["-equalize"], prepend)
+
+    def contrast_stretch(self, a, b, prepend=False):
+        """
+        Add the -contrast-stretch a%xb% operator. The top a percent of the dark pixels 
+        will become black and the top b percent of the light pixels will become white. 
+        The contrast of the rest of the pixels are maximized. 
+
+        a and b are expected to be integers.
+        """
+        white_and_black_point = "%d%%x%d%%" % (a, b)
+        name = "contrast_stretch_%d_%d" % (a, b)
+        opt = ['-contrast-stretch', white_and_black_point]
+        self._chain_op(name, opt, prepend)
+
     def rgb555_dither(self, _colormap=None):
         """
         Reduce color channels to 5-bit by dithering, preserving Alpha channel.
