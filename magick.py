@@ -343,7 +343,7 @@ class ImageMagick(object):
         source = None
         if is_remote(path):
             source = Popen(
-                ['curl' if not self.curl_path else self.curl_path, '-sf', path],
+                ['curl' if not self.curl_path else self.curl_path, '-sfL', path],
                 stdout=PIPE,
                 close_fds=True)
 
