@@ -115,6 +115,33 @@ Full list of options supported by default:
        Format to convert the image into.  Defaults to jpeg.
        png16 is 24-bit png pre-dithered for 16-bit (RGB555) screens.
 
+    &normalize=1
+       Histogram-based contrast increase. It passes the -normalize operator to ImageMagick.
+       The top two percent of the dark pixels will become black and the top one percent of the 
+       light pixels will become white. The contrast of the rest of the pixels are maximized.
+       All the channels are normalized together to avoid color shift, so pure black or white 
+       may not exist in the final image. Defaults to 0, which won't chain any operator to the
+       ImageMagick command.
+
+    &equalize=1
+       Histogram-based colour redistribution. It passes the -equalize operator to ImageMagick, 
+       following the -normalize operator. It redistributes the colour of the image according to 
+       uniform distribution. Each channel are changed independently, and color shift may happen.
+       Default to 0, which won't chain any operator to the ImageMagick command.
+
+    &contrast_stretch=axb
+       Histogram-based contrast adjustment. It passes the -contrast-stretch a%xb% operator to 
+       ImageMagick, following the -equalize operator. The top a percent of the dark pixels will 
+       become black and the top b percent of the light pixels will become white. The contrast 
+       of the rest of the pixels are maximized. All the channels are normalized together to avoid 
+       color shift, so pure black or white may not exist in the final image. Defaults to None, which 
+       won't chain any operator to the ImageMagick command.
+
+    &brightness_contrast=cxd
+       Amplify brightness and contrast by percentages. It passes the -brightness-contrast c%xd% 
+       operator to ImageMagick, following the -contrast-stretch operator. Defaults to None, which 
+       won't chain any operator to the ImageMagick command.
+
 Examples
 ==========
 

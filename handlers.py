@@ -122,16 +122,21 @@ class ImageHandler(RequestHandler):
 
          &equalize=1
             Histogram-based colour redistribution. It passes the -equalize operator to ImageMagick, 
-            behind the -normalize operator. It redistributes the colour of the image according to 
+            following the -normalize operator. It redistributes the colour of the image according to 
             uniform distribution. Each channel are changed independently, and color shift may happen.
             Default to 0, which won't chain any operator to the ImageMagick command.
 
          &contrast_stretch=axb
             Histogram-based contrast adjustment. It passes the -contrast-stretch a%xb% operator to 
-            ImageMagick, behand the -equalize operator. The top a percent of the dark pixels will 
+            ImageMagick, following the -equalize operator. The top a percent of the dark pixels will 
             become black and the top b percent of the light pixels will become white. The contrast 
             of the rest of the pixels are maximized. All the channels are normalized together to avoid 
-            color shift, so pure black or white may not exist in the final image. Defaults to 0, which 
+            color shift, so pure black or white may not exist in the final image. Defaults to None, which 
+            won't chain any operator to the ImageMagick command.
+
+         &brightness_contrast=cxd
+            Amplify brightness and contrast by percentages. It passes the -brightness-contrast c%xd% 
+            operator to ImageMagick, following the -contrast-stretch operator. Defaults to None, which 
             won't chain any operator to the ImageMagick command.
 
         """
@@ -152,6 +157,7 @@ class ImageHandler(RequestHandler):
         normalize = int(self.get_argument("normalize", 0)) == 1
         equalize = int(self.get_argument("equalize", 0)) == 1
         contrast_stretch = self.parse_2d_param(self.get_argument("contrast_stretch", None))
+        brightness_contrast = self.parse_2d_param(self.get_argument("brightness_contrast", None))
 
         # size=&maintain_ratio=&crop=&crop_anchor=
         if size:
@@ -191,18 +197,23 @@ class ImageHandler(RequestHandler):
             if reflection_height:
                 magick.reflect(reflection_height, top, bottom)
 
-        # normalize=1
+        # normalize=
         if normalize:
             magick.normalize()
 
-        # equalize=1
+        # equalize=
         if equalize:
             magick.equalize()
 
-        # contrast_stretch=axb
+        # contrast_stretch=
         if contrast_stretch:
-            a, b = contrast_stretch
+            (a, b) = contrast_stretch
             magick.contrast_stretch(a, b)
+
+        # brightness_contrast=
+        if brightness_contrast:
+            (c, d) = brightness_contrast
+            magick.brightness_contrast(c, d)
 
         magick.format = magick.JPEG
         format_param = self.get_argument("format", "").lower()

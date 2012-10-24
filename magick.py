@@ -250,6 +250,17 @@ class ImageMagick(object):
         opt = ['-contrast-stretch', white_and_black_point]
         self._chain_op(name, opt, prepend)
 
+    def brightness_contrast(self, a, b, prepend=False):
+        """
+        Add the -brightness-contrast a%xb% operator. a and b represent the percentage change
+        of brighteness and contrast, respectively.
+        a and b are expected to be integers.
+        """
+        brightness_and_contrast = "%d%%x%d%%" % (a, b)
+        name = "brightness_contrast_%d_%d" % (a, b)
+        opt = ['-brightness-contrast', brightness_and_contrast]
+        self._chain_op(name, opt, prepend)
+
     def rgb555_dither(self, _colormap=None):
         """
         Reduce color channels to 5-bit by dithering, preserving Alpha channel.
