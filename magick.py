@@ -223,6 +223,24 @@ class ImageMagick(object):
             ],
             prepend)
 
+    def extent(self, w, h, g='Center', bg='#00000000', cp='over', prepend=False):
+        """
+        Extent the image to the given size by expanding its borders. w and h 
+        are expected to be positive integers, g is the anchor or gravity direction 
+        of the expansion, bg is the background color of extended area, cp is the
+        compose method of the extent operator.
+        """
+        extent = "%dx%d" % (w, h)
+        self._chain_op(
+            'extent_%d_%d_%s_%s_%s' % (w, h, g, bg, cp),
+            [
+                '-gravity', g,
+                '-background', bg,
+                '-compose', cp,
+                '-extent', extent
+            ],
+            prepend)
+
     def normalize(self, prepend=False):
         """
         Add -normalize operator. The top two percent of the dark pixels will become 

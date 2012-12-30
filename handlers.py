@@ -80,6 +80,37 @@ class ImageHandler(RequestHandler):
             Maintain aspect ratio when resizing (ignored if size is not
             provided).
 
+         &extent=1
+            Expand the image to the dimension specified by the extent_size or the 
+            size parameter. This is useful when maintain_ratio=1 leaves blanks on 
+            the edges - set extent=1 and extent_anchor together can determine which 
+            side the blank edges are placed
+
+         &extent_size=NxM
+            Extent the resized image further to N pixels wide and M pixels high.
+            Default to size.
+
+         &extent_anchor=(top|bottom|left|right|center|middle|topleft|topright
+            |bottomleft|bottomright)
+            Anchors the extent operation to one location of the image.
+            (ignored if extent or extent_size does not exist or is invalid).
+            Defaults to center
+
+         &extent_background=Hex
+             The background color used for extending a source image.
+             The color should be specified by its Hex value, e.g. #FF0, #FFFF00, or
+             #FFFF00AA.
+             (ignored if extent or extent_size does not exist or is invalid).
+             Defaults to #00000000 (transparent)
+
+         &extent_compose=(over|add|subtract)
+             The compose method used for extending a source image.
+             over     - source image is composed over background color.
+             add      - source image is added onto background color.
+             subtract - source image is subtracted from background color.
+             (ignored if extent or extent_size does not exist or is invalid).
+             Defaults to "over"
+
          &post_crop_size=NxM
             Applies a secondary "post-crop" to the image, after the standard
             image resize is performed. This supports the case where an image 
@@ -148,6 +179,11 @@ class ImageHandler(RequestHandler):
         magick = self.IMAGE_MAGICK_CLASS()
 
         size = self.parse_size(self.get_argument("size", None))
+        extent = int(self.get_argument("extent", 0)) == 1
+        extent_size = self.parse_size(self.get_argument("extent_size", self.get_argument("size", None)))
+        extent_anchor = self.get_argument("extent_anchor", "center")
+        extent_background = self.get_argument("extent_background", "#00000000")
+        extent_compose = self.restrict_compose_method(self.get_argument("extent_compose", "over"))
         reflection_height = self.get_argument("reflection_height", None)
         maintain_ratio = int(self.get_argument("maintain_ratio", 0)) == 1
         crop = int(self.get_argument("crop", 0)) == 1
@@ -169,8 +205,16 @@ class ImageHandler(RequestHandler):
                 magick.options.append("+repage")
                 magick.crop(w, h, 0, 0, direction)
                 magick.options.append("+repage")
-            elif not reflection_height:
+            elif not reflection_height and not extent:
                 magick.constrain(w, h)
+
+        # extent=1&extent_anchor=&extent_background=&extent_compose=&extent_size=
+        if extent and extent_size:
+            (w, h) = extent_size
+            direction = magick.GRAVITIES[extent_anchor]
+            magick.options.append("+repage")
+            magick.extent(w, h, direction, extent_background, extent_compose)
+            magick.options.append("+repage")
 
         # post_crop_size=&post_crop_anchor=
         if post_crop_size:
@@ -223,6 +267,15 @@ class ImageHandler(RequestHandler):
                 magick.rgb555_dither()
 
         self.magick = magick
+
+    def restrict_compose_method(self, method):
+        default_method = "over"
+        supported_methods = [
+            'over', 
+            'add', 
+            'subtract',
+            ]
+        return method if method in supported_methods else default_method 
 
     def set_content_type(self):
         """
