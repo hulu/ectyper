@@ -111,6 +111,13 @@ class ImageHandler(RequestHandler):
              (ignored if extent or extent_size does not exist or is invalid).
              Defaults to "over"
 
+         &extent_shift=NxM
+            Shifts the image away from anchor position by N pixels padding on the left
+            and M pixels of padding on the top. Currently only positive integer values
+            are supported.
+            Note, if the shift + image size exceeds the extent_size, weird stuff will
+            likely happen.
+
          &post_crop_size=NxM
             Applies a secondary "post-crop" to the image, after the standard
             image resize is performed. This supports the case where an image 
@@ -138,6 +145,35 @@ class ImageHandler(RequestHandler):
             The bottom value to use when generating the gradient for
             reflection_height, ignored if that parameter is not set.  Should be
             between 0 and 1.  Defaults to 0.
+
+         &splice=1
+            Insert a space into the middle or edge of an image of dimensions
+            specified by the splice_size. This will result
+            in the overall size of the image increasing based on the addition.
+
+         &splice_size=NxM
+            Dimensions of space to add into the middle or edge of an image.
+
+         &splice_anchor=(top|bottom|left|right|center|middle|topleft|topright
+            |bottomleft|bottomright)
+            Anchors the splice operation to one location of the image.
+            (ignored if splice or splice_size does not exist or is invalid).
+            Defaults to center
+
+         &splice_background=Hex
+             The background color used for splicing a source image.
+             The color should be specified by its Hex value, e.g. #FF0, #FFFF00, or
+             #FFFF00AA.
+             (ignored if splice or splice_size does not exist or is invalid).
+             Defaults to #00000000 (transparent)
+
+         &splice_compose=(over|add|subtract)
+             The compose method used for splicing a source image.
+             over     - source image is composed over background color.
+             add      - source image is added onto background color.
+             subtract - source image is subtracted from background color.
+             (ignored if splice or splice_size does not exist or is invalid).
+             Defaults to "over"
 
          &format=(jpeg|png|png16)
             Format to convert the image into.  Defaults to jpeg.
@@ -179,11 +215,23 @@ class ImageHandler(RequestHandler):
         magick = self.IMAGE_MAGICK_CLASS()
 
         size = self.parse_size(self.get_argument("size", None))
+        
         extent = int(self.get_argument("extent", 0)) == 1
         extent_size = self.parse_size(self.get_argument("extent_size", self.get_argument("size", None)))
         extent_anchor = self.get_argument("extent_anchor", "center")
         extent_background = self.get_argument("extent_background", "#00000000")
         extent_compose = self.restrict_compose_method(self.get_argument("extent_compose", "over"))
+        
+        splice = int(self.get_argument("splice", 0)) == 1
+        splice_size = self.parse_size(self.get_argument("splice_size", self.get_argument("size", None)))
+        splice_anchor = self.get_argument("splice_anchor", "center")
+        splice_background = self.get_argument("splice_background", "#00000000")
+        splice_compose = self.restrict_compose_method(self.get_argument("splice_compose", "over"))
+
+        # shift is a custom setting that will use splice to shift an extent in a desired direction
+        extent_shift = self.parse_size(self.get_argument('extent_shift', None))
+        shift_align = None
+        
         reflection_height = self.get_argument("reflection_height", None)
         maintain_ratio = int(self.get_argument("maintain_ratio", 0)) == 1
         crop = int(self.get_argument("crop", 0)) == 1
@@ -194,6 +242,7 @@ class ImageHandler(RequestHandler):
         equalize = int(self.get_argument("equalize", 0)) == 1
         contrast_stretch = self.parse_2d_param(self.get_argument("contrast_stretch", None))
         brightness_contrast = self.parse_2d_param(self.get_argument("brightness_contrast", None))
+        
 
         # size=&maintain_ratio=&crop=&crop_anchor=
         if size:
@@ -211,9 +260,41 @@ class ImageHandler(RequestHandler):
         # extent=1&extent_anchor=&extent_background=&extent_compose=&extent_size=
         if extent and extent_size:
             (w, h) = extent_size
+            if extent_shift:
+                (shift_left, shift_top) = extent_shift
+                
+                # Adjust extent by desired shift dimensions
+                w = w - abs(shift_left)
+                h = h - abs(shift_top)
+
+                # Determine which alignment to use for splice
+                shift_align = ''
+                if shift_top >= 0:
+                    shift_align += 'top'
+                else:
+                    shift_align += 'bottom'
+                if shift_left >= 0:
+                    shift_align += 'left'
+                else:
+                    shift_align += 'right'
+
             direction = magick.GRAVITIES[extent_anchor]
             magick.options.append("+repage")
             magick.extent(w, h, direction, extent_background, extent_compose)
+            magick.options.append("+repage")
+
+        # Currently we do not support both an extent_shift and a splice
+        if extent_shift and shift_align:
+            (w, h) = extent_shift
+            direction = magick.GRAVITIES[shift_align]
+            magick.options.append("+repage")
+            magick.splice(w, h, direction, extent_background, extent_compose)
+            magick.options.append("+repage")
+        elif splice and splice_size:
+            (w, h) = splice_size
+            direction = magick.GRAVITIES[splice_anchor]
+            magick.options.append("+repage")
+            magick.splice(w, h, direction, splice_background, splice_compose)
             magick.options.append("+repage")
 
         # post_crop_size=&post_crop_anchor=

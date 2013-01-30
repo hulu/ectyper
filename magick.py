@@ -241,6 +241,24 @@ class ImageMagick(object):
             ],
             prepend)
 
+    def splice(self, w, h, g='Center', bg='#00000000', cp='over', prepend=False):
+        """
+        Insert a space into the middle or edge of an image, increasing the final 
+        size of the image. w and h are expected to be positive integers, g is the
+        anchor or gravity direction of the splice, bg is the background color of
+        the insterted area, cp is the compse method of the splice operator.
+        """
+        splice = "%dx%d" % (w, h)
+        self._chain_op(
+            'splice_%d_%d_%s_%s_%s' % (w, h, g, bg, cp),
+            [
+                '-gravity', g,
+                '-background', bg,
+                '-compose', cp,
+                '-splice', splice
+            ],
+            prepend)
+
     def normalize(self, prepend=False):
         """
         Add -normalize operator. The top two percent of the dark pixels will become 
