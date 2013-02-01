@@ -21,6 +21,7 @@ class ImageHandler(RequestHandler):
     def __init__(self, *args, **kwargs):
         super(ImageHandler, self).__init__(*args, **kwargs)
         self.magick = None
+        self.local_image_dir = None
 
     def handler(self, *args):
         """
@@ -37,6 +38,25 @@ class ImageHandler(RequestHandler):
 
     def parse_size(self, size):
         return self.parse_2d_param(size)
+
+    def parse_overlay_list(self, input_str):
+        """
+        Parse the comma separated list of overlay images.  Throws a 500 if the
+        user attempts to pass in a relative path.
+        """
+        if input_str:
+            result = []
+            paths = input_str.split(',')
+            for path in paths:
+                filename = os.path.basename(path)
+                if filename == path:
+                    result.append(filename)
+                else:
+                    logger.error('Relative path name {0} not allowed for image overlay'.format(path))
+                    raise HTTPError(500)
+            return result
+        else:
+            return None
 
     def parse_2d_param(self, size):
         """
@@ -206,6 +226,12 @@ class ImageHandler(RequestHandler):
             operator to ImageMagick, following the -contrast-stretch operator. Defaults to None, which 
             won't chain any operator to the ImageMagick command.
 
+         &overlay_image=image1.png,image2.png,...
+            Applies each image as an overlay on the source image.  The overlay image will be resized
+            to match the size of the source image.  Overlays are applied before cropping.  The images
+            specified must be present in a local directory, specified by self.local_image_dir.
+            Relative paths are not allowed, and a 500 will be thrown if one is encountered (preventing
+            clients from accessing files in other directories).
         """
 
         # Already calculated options, bail.
@@ -242,12 +268,20 @@ class ImageHandler(RequestHandler):
         equalize = int(self.get_argument("equalize", 0)) == 1
         contrast_stretch = self.parse_2d_param(self.get_argument("contrast_stretch", None))
         brightness_contrast = self.parse_2d_param(self.get_argument("brightness_contrast", None))
-        
+        overlay_image = self.parse_overlay_list(self.get_argument("overlay_image", None))
 
         # size=&maintain_ratio=&crop=&crop_anchor=
         if size:
             (w, h) = size
             magick.resize(w, h, maintain_ratio, crop)
+            # overlay before cropping
+            if overlay_image and self.local_image_dir:
+                for img in overlay_image:
+                    img_path = os.path.join(self.local_image_dir, img)
+                    if os.path.exists(img_path):
+                        magick.overlay_with_resize(0, 0, w, h, 'Center', img_path)
+                    else:
+                        logger.warn('Requested overlay image that does not exist {0}'.format(img_path))
             if maintain_ratio and crop:
                 direction = magick.GRAVITIES[crop_anchor]
                 # repage before and after we crop.

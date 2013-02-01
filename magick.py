@@ -165,8 +165,16 @@ class ImageMagick(object):
 
     def overlay(self, x, y, g, image_filename, prepend=False):
         """
+        Overlay without resizing
+        """
+        self.overlay_with_resize(x, y, -1, -1, g, image_filename, prepend)
+
+    def overlay_with_resize(self, x, y, w, h, g, image_filename, prepend=False):
+        """
         Overlay image specified by image_filename onto the current image,
         offset by (x, y) with gravity g. x and y should be integers.
+
+        The overlay image is resized according to (w x h), if they are positive
 
         g should be one of NorthWest, North, NorthEast, West, Center, East,
         SouthWest, South, SouthEast (see your ImageMagick's -gravity list for
@@ -175,16 +183,17 @@ class ImageMagick(object):
         opt_name = 'overlay_%d_%d_%s' % (x, y, os.path.basename(image_filename))
         x = "+%d" % x if x >= 0 else str(x)
         y = "+%d" % y if y >= 0 else str(y)
+        size = "%dx%d" % (w, h) if w > 0 and h > 0 else ""
         self._chain_op(
             opt_name,
             [
                 image_filename,
                 '-gravity', g,
-                '-geometry', "%s%s" % (x, y),
+                '-geometry', "%s%s%s" % (size, x, y),
                 '-composite'
             ],
             prepend)
-
+    
     def resize(self, w, h, maintain_ratio, will_crop, prepend=False):
         """
         Resizes the image to the given size.  w and h are expected to be

@@ -210,6 +210,13 @@ Full list of options supported by default:
        operator to ImageMagick, following the -contrast-stretch operator. Defaults to None, which 
        won't chain any operator to the ImageMagick command.
 
+    &overlay_image=image1.png,image2.png,...
+        Applies each image as an overlay on the source image.  The overlay image will be resized
+        to match the size of the source image.  Overlays are applied before cropping.  The images
+        specified must be present in a local directory, specified by self.local_image_dir.
+        Relative paths are not allowed, and a 500 will be thrown if one is encountered (preventing
+        clients from accessing files in other directories).
+
 Examples
 ==========
 
