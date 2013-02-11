@@ -22,6 +22,7 @@ class ImageHandler(RequestHandler):
         super(ImageHandler, self).__init__(*args, **kwargs)
         self.magick = None
         self.local_image_dir = None
+        self.local_font_dir = None
 
     def handler(self, *args):
         """
@@ -232,6 +233,7 @@ class ImageHandler(RequestHandler):
             specified must be present in a local directory, specified by self.local_image_dir.
             Relative paths are not allowed, and a 500 will be thrown if one is encountered (preventing
             clients from accessing files in other directories).
+
         """
 
         # Already calculated options, bail.
@@ -269,6 +271,17 @@ class ImageHandler(RequestHandler):
         contrast_stretch = self.parse_2d_param(self.get_argument("contrast_stretch", None))
         brightness_contrast = self.parse_2d_param(self.get_argument("brightness_contrast", None))
         overlay_image = self.parse_overlay_list(self.get_argument("overlay_image", None))
+        texts = []
+        styles = []
+        for n in range(0,5):
+            text = self.get_argument("text_" + str(n), None)
+            style = self.get_argument("style_" + str(n), None)
+            if text and style:
+                texts.append(text)
+                styles.append(style)
+            else:
+                break
+        text_validator = self.get_argument("text_validator", None)
 
         # size=&maintain_ratio=&crop=&crop_anchor=
         if size:
@@ -291,6 +304,12 @@ class ImageHandler(RequestHandler):
             elif not reflection_height and not extent:
                 magick.constrain(w, h)
 
+            if self.validate_texts(texts, text_validator):
+                for t, s in zip(texts, styles):
+                    style = self.get_style(s)
+                    if style:
+                        magick.add_styled_text(t, style, self.local_font_dir, w, h)
+                
         # extent=1&extent_anchor=&extent_background=&extent_compose=&extent_size=
         if extent and extent_size:
             (w, h) = extent_size
@@ -382,6 +401,12 @@ class ImageHandler(RequestHandler):
                 magick.rgb555_dither()
 
         self.magick = magick
+
+    def validate_texts(self, texts, validator):
+        return True
+
+    def get_style(self, s):
+        return None
 
     def restrict_compose_method(self, method):
         default_method = "over"

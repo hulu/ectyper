@@ -1,12 +1,15 @@
+from binascii import crc32
 from errno import ESRCH
 from fcntl import fcntl, F_GETFL, F_SETFL
 import logging
 import os.path
 from os import O_NONBLOCK
 from subprocess import Popen, PIPE
+import textwrap
 from tornado.ioloop import IOLoop
 from urlparse import urlparse
 
+# Text 'stylesheets'
 __all__ = ["ImageMagick", "is_remote"]
 
 logger = logging.getLogger("ectyper")
@@ -162,6 +165,57 @@ class ImageMagick(object):
             'crop_%s_%sx%s%s%s' % (g, w, h, x, y),
             ['-gravity', g, '-crop', '%sx%s%s%s' % (w, h, x, y)],
             prepend)
+
+    def add_styled_text(self, t, style, font_dir, w, h):
+        """
+        Add a piece of text (t) with a style (style) to an image of size (w, h)
+
+        Style is an object defined as follows:
+        style = {
+            'base_w' - expected width of image for x, y, and fontsize to be correct - will determine how those values are scaled
+            'base_h' - expected height of image for x, y, and fontsize to be correct - will determine how those values are scaled
+            'x' - location of font
+            'y' - location of font
+            'g' - gravity of the font placement
+            'pointsize' - default pointsize of the font
+            'color' - Color of the font
+            'installed_font' - The name of a font installed on the machine or None if using relative_font
+            'relative_font' - The location of a local font, relative to font_dir
+            'font_weight' - The font weight
+            'textwrap' - Number of characters you want the text to wrap at or None
+        }
+        """
+        if style:
+            w_mod = w/style['base_w']
+            h_mod = h/style['base_h']
+            x = style['x'] * w_mod
+            y = style['y'] * h_mod
+            pointsize = style['pointsize'] * h_mod
+            font = style['installed_font']
+            if not font and font_dir:
+                font = os.path.join(font_dir, style['relative_font'])
+            textwrap_at = style['textwrap']
+            if textwrap_at:
+                t = '\n'.join(textwrap.wrap(t, textwrap_at))
+            self.add_text(str(x), str(y), style['g'], str(pointsize), style['color'], t, font, str(style['font_weight']))
+
+    def add_text(self, x, y, g, pointsize, color, text, font, font_weight, style="Normal", prepend=False):
+        stripped_text = ''.join(c for c in text if c.isalnum())
+        stripped_text = stripped_text[:64] if len(stripped_text) > 64 else stripped_text
+        check = crc32(text)
+        self._chain_op(
+            'text_%s%s%s_%s_%s' % (g, x , y, stripped_text, check),
+            [
+                "-gravity", g,
+                "-pointsize", pointsize,
+                "-fill", color,
+                "-font", font,
+                "-weight", font_weight,
+                "-style", style,
+                "-draw", 'text %s,%s "%s"' % (x, y, text)
+            ],
+            prepend
+        )
 
     def overlay(self, x, y, g, image_filename, prepend=False):
         """
@@ -468,7 +522,6 @@ class ImageMagick(object):
 
             # Make output non-blocking
             fd = convert.stdout.fileno()
-
             self.ioloop.add_handler(
                 _non_blocking_fileno(convert.stdout),
                 _on_read,
