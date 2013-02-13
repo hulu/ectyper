@@ -234,6 +234,17 @@ class ImageHandler(RequestHandler):
             Relative paths are not allowed, and a 500 will be thrown if one is encountered (preventing
             clients from accessing files in other directories).
 
+         &text_0=Some%20Text
+            text_0 through text_4 are used with their corresponding style params to overlay text onto a
+            given image.  Text is applied before cropping.  Text can be of any length, through whether
+            the text runs off the image or wraps is defined in the style.
+
+        &style_0=some_style
+            style_0 through style_4 are used with their corresponding text params to overlay text onto a 
+            given image.  Text is applied before cropping.  Styles must be defined and are obtained 
+            through get_style, without modification no styles exist and no text will be applied.
+
+
         """
 
         # Already calculated options, bail.
