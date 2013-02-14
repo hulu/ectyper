@@ -66,38 +66,38 @@ elsewhere for caching purposes.
 Full list of options supported by default:
 
     size=NxM
-       Resize the source image to N pixels wide and M pixels high.
+        Resize the source image to N pixels wide and M pixels high.
 
     crop=1
-       Crops the image, maintaining aspect ratio, when resizing
-       (ignored if size is not provided or maintain_ratio is not 1).
-       Defaults to 0.
+        Crops the image, maintaining aspect ratio, when resizing
+        (ignored if size is not provided or maintain_ratio is not 1).
+        Defaults to 0.
 
     crop_anchor=(top|bottom|left|right|center|middle|topleft|topright
-       |bottomleft|bottomright)
-       Anchors the crop to one location of the image.
-       (ignored if crop and maintain_ratio are not both 1).
-       Defaults to center
+        |bottomleft|bottomright)
+        Anchors the crop to one location of the image.
+        (ignored if crop and maintain_ratio are not both 1).
+        Defaults to center
 
     maintain_ratio=1
-       Maintain aspect ratio when resizing (ignored if size is not
-       provided).
-    
+        Maintain aspect ratio when resizing (ignored if size is not
+        provided).
+
     extent=1
-       Expand the image to the dimension specified by the extent_size or the 
-       size parameter. This is useful when maintain_ratio=1 leaves blanks on 
-       the edges - set extent=1 and extent_anchor together can determine which 
-       side the blank edges are placed
+        Expand the image to the dimension specified by the extent_size or the 
+        size parameter. This is useful when maintain_ratio=1 leaves blanks on 
+        the edges - set extent=1 and extent_anchor together can determine which 
+        side the blank edges are placed
 
     extent_size=NxM
-       Extent the resized image further to N pixels wide and M pixels high.
-       Default to size.
+        Extent the resized image further to N pixels wide and M pixels high.
+        Default to size.
 
     extent_anchor=(top|bottom|left|right|center|middle|topleft|topright
-       |bottomleft|bottomright)
-       Anchors the extent operation to one location of the image.
-       (ignored if extent or extent_size does not exist or is invalid).
-       Defaults to center
+        |bottomleft|bottomright)
+        Anchors the extent operation to one location of the image.
+        (ignored if extent or extent_size does not exist or is invalid).
+        Defaults to center
 
     extent_background=Hex
         The background color used for extending a source image.
@@ -122,100 +122,109 @@ Full list of options supported by default:
         likely happen.
 
     post_crop_size=NxM
-       Applies a secondary "post-crop" to the image, after the standard
-       image resize is performed. This supports the case where an image 
-       needs to be sized to fit a particular dimension using a crop, 
-       then the image needs to be chopped up into different regions.
-       Defaults to None, meaning that no post-crop is applied.
+        Applies a secondary "post-crop" to the image, after the standard
+        image resize is performed. This supports the case where an image 
+        needs to be sized to fit a particular dimension using a crop, 
+        then the image needs to be chopped up into different regions.
+        Defaults to None, meaning that no post-crop is applied.
 
     post_crop_anchor=(top|bottom|left|right|center|middle|topleft|topright
-       |bottomleft|bottomright)
-       Anchors the post-crop to one location of the image.
-       (ignored if post_crop_size does not exist or is invalid).
-       Defaults to center
+        |bottomleft|bottomright)
+        Anchors the post-crop to one location of the image.
+        (ignored if post_crop_size does not exist or is invalid).
+        Defaults to center
 
     reflection_height=N
-       Flip the image upside down and apply a gradient to mimic a
-       reflected image.  reflection_alpha_top and reflection_alpha_bottom
-       can be used to set the gradient parameters.
+        Flip the image upside down and apply a gradient to mimic a
+        reflected image.  reflection_alpha_top and reflection_alpha_bottom
+        can be used to set the gradient parameters.
 
     reflection_alpha_top=N
-       The top value to use when generating the gradient for
-       reflection_height, ignored if that parameter is not set.  Should be
-       between 0 and 1. Defaults to 1.
+        The top value to use when generating the gradient for
+        reflection_height, ignored if that parameter is not set.  Should be
+        between 0 and 1. Defaults to 1.
 
     reflection_alpha_bottom=N
-       The bottom value to use when generating the gradient for
-       reflection_height, ignored if that parameter is not set.  Should be
-       between 0 and 1.  Defaults to 0.
+        The bottom value to use when generating the gradient for
+        reflection_height, ignored if that parameter is not set.  Should be
+        between 0 and 1.  Defaults to 0.
 
     splice=1
-       Insert a space into the middle or edge of an image of dimensions
-       specified by the splice_size. This will result
-       in the overall size of the image increasing based on the addition.
+        Insert a space into the middle or edge of an image of dimensions
+        specified by the splice_size. This will result
+        in the overall size of the image increasing based on the addition.
 
     splice_size=NxM
-       Dimensions of space to add into the middle or edge of an image.
+        Dimensions of space to add into the middle or edge of an image.
 
     splice_anchor=(top|bottom|left|right|center|middle|topleft|topright
-       |bottomleft|bottomright)
-       Anchors the splice operation to one location of the image.
-       (ignored if splice or splice_size does not exist or is invalid).
-       Defaults to center
+        |bottomleft|bottomright)
+        Anchors the splice operation to one location of the image.
+        (ignored if splice or splice_size does not exist or is invalid).
+        Defaults to center
 
     splice_background=Hex
-       The background color used for splicing a source image.
-       The color should be specified by its Hex value, e.g. #FF0, #FFFF00, or
-       #FFFF00AA.
-       (ignored if splice or splice_size does not exist or is invalid).
-       Defaults to #00000000 (transparent)
+        The background color used for splicing a source image.
+        The color should be specified by its Hex value, e.g. #FF0, #FFFF00, or
+        #FFFF00AA.
+        (ignored if splice or splice_size does not exist or is invalid).
+        Defaults to #00000000 (transparent)
 
     splice_compose=(over|add|subtract)
-       The compose method used for splicing a source image.
-       over     - source image is composed over background color.
-       add      - source image is added onto background color.
-       subtract - source image is subtracted from background color.
-       (ignored if splice or splice_size does not exist or is invalid).
-       Defaults to "over"
-
+        The compose method used for splicing a source image.
+        over     - source image is composed over background color.
+        add      - source image is added onto background color.
+        subtract - source image is subtracted from background color.
+        (ignored if splice or splice_size does not exist or is invalid).
+        Defaults to "over"
 
     format=(jpeg|png|png16)
-       Format to convert the image into.  Defaults to jpeg.
-       png16 is 24-bit png pre-dithered for 16-bit (RGB555) screens.
+        Format to convert the image into.  Defaults to jpeg.
+        png16 is 24-bit png pre-dithered for 16-bit (RGB555) screens.
 
-    &normalize=1
-       Histogram-based contrast increase. It passes the -normalize operator to ImageMagick.
-       The top two percent of the dark pixels will become black and the top one percent of the 
-       light pixels will become white. The contrast of the rest of the pixels are maximized.
-       All the channels are normalized together to avoid color shift, so pure black or white 
-       may not exist in the final image. Defaults to 0, which won't chain any operator to the
-       ImageMagick command.
+    normalize=1
+        Histogram-based contrast increase. It passes the -normalize operator to ImageMagick.
+        The top two percent of the dark pixels will become black and the top one percent of the 
+        light pixels will become white. The contrast of the rest of the pixels are maximized.
+        All the channels are normalized together to avoid color shift, so pure black or white 
+        may not exist in the final image. Defaults to 0, which won't chain any operator to the
+        ImageMagick command.
 
-    &equalize=1
-       Histogram-based colour redistribution. It passes the -equalize operator to ImageMagick, 
-       following the -normalize operator. It redistributes the colour of the image according to 
-       uniform distribution. Each channel are changed independently, and color shift may happen.
-       Default to 0, which won't chain any operator to the ImageMagick command.
+    equalize=1
+        Histogram-based colour redistribution. It passes the -equalize operator to ImageMagick, 
+        following the -normalize operator. It redistributes the colour of the image according to 
+        uniform distribution. Each channel are changed independently, and color shift may happen.
+        Default to 0, which won't chain any operator to the ImageMagick command.
 
-    &contrast_stretch=axb
-       Histogram-based contrast adjustment. It passes the -contrast-stretch a%xb% operator to 
-       ImageMagick, following the -equalize operator. The top a percent of the dark pixels will 
-       become black and the top b percent of the light pixels will become white. The contrast 
-       of the rest of the pixels are maximized. All the channels are normalized together to avoid 
-       color shift, so pure black or white may not exist in the final image. Defaults to None, which 
-       won't chain any operator to the ImageMagick command.
+    contrast_stretch=axb
+        Histogram-based contrast adjustment. It passes the -contrast-stretch a%xb% operator to 
+        ImageMagick, following the -equalize operator. The top a percent of the dark pixels will 
+        become black and the top b percent of the light pixels will become white. The contrast 
+        of the rest of the pixels are maximized. All the channels are normalized together to avoid 
+        color shift, so pure black or white may not exist in the final image. Defaults to None, which 
+        won't chain any operator to the ImageMagick command.
 
-    &brightness_contrast=cxd
-       Amplify brightness and contrast by percentages. It passes the -brightness-contrast c%xd% 
-       operator to ImageMagick, following the -contrast-stretch operator. Defaults to None, which 
-       won't chain any operator to the ImageMagick command.
+    brightness_contrast=cxd
+        Amplify brightness and contrast by percentages. It passes the -brightness-contrast c%xd% 
+        operator to ImageMagick, following the -contrast-stretch operator. Defaults to None, which 
+        won't chain any operator to the ImageMagick command.
 
-    &overlay_image=image1.png,image2.png,...
+    overlay_image=image1.png,image2.png,...
         Applies each image as an overlay on the source image.  The overlay image will be resized
         to match the size of the source image.  Overlays are applied before cropping.  The images
         specified must be present in a local directory, specified by self.local_image_dir.
         Relative paths are not allowed, and a 500 will be thrown if one is encountered (preventing
         clients from accessing files in other directories).
+
+    text_0=Some%20Text
+        text_0 through text_4 are used with their corresponding style params to overlay text onto a
+        given image.  Text is applied before cropping.  Text can be of any length, through whether
+        the text runs off the image or wraps is defined in the style.
+
+    style_0=some_style
+        style_0 through style_4 are used with their corresponding text params to overlay text onto a 
+        given image.  Text is applied before cropping.  Styles must be defined and are obtained 
+        through get_style, without modification no styles exist and no text will be applied.
 
 Examples
 ==========
