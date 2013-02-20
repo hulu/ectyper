@@ -237,7 +237,7 @@ class ImageMagick(object):
         opt_name = 'overlay_%d_%d_%s' % (x, y, os.path.basename(image_filename))
         x = "+%d" % x if x >= 0 else str(x)
         y = "+%d" % y if y >= 0 else str(y)
-        size = "%dx%d" % (w, h) if w > 0 and h > 0 else ""
+        size = "%dx%d!" % (w, h) if w > 0 and h > 0 else ""
         self._chain_op(
             opt_name,
             [

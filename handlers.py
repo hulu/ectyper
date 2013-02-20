@@ -153,10 +153,8 @@ class ImageHandler(RequestHandler):
                 magick.constrain(w, h)
 
             if self.validate_texts(texts, text_validator):
-                for t, s in zip(texts, styles):
-                    style = self.get_style(s)
-                    if style:
-                        magick.add_styled_text(t, style, self.local_font_dir, w, h)
+                for ts in self.get_text_styles(texts, styles):
+                    magick.add_styled_text(ts['text'], ts['style'], self.local_font_dir, w, h)
                 
         # extent=1&extent_anchor=&extent_background=&extent_compose=&extent_size=
         if extent and extent_size:
@@ -249,6 +247,15 @@ class ImageHandler(RequestHandler):
                 magick.rgb555_dither()
 
         self.magick = magick
+
+    def get_text_styles(self, texts, styles):
+        text_styles = []
+        for t, s in zip(texts, styles):
+            style = self.get_style(s)
+            if style:
+                text_styles.append({'text': t, 'style': style})
+        return text_styles
+
 
     def validate_texts(self, texts, validator):
         return True
