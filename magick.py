@@ -202,7 +202,7 @@ class ImageMagick(object):
     def add_text(self, x, y, g, pointsize, color, text, font, font_weight, style="Normal", prepend=False):
         stripped_text = ''.join(c for c in text if c.isalnum())
         stripped_text = stripped_text[:64] if len(stripped_text) > 64 else stripped_text
-        check = crc32(text)
+        check = crc32(text.encode('utf-8'))
         self._chain_op(
             'text_%s%s%s_%s_%s' % (g, x , y, stripped_text, check),
             [
