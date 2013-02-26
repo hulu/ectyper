@@ -5,7 +5,6 @@ import logging
 import os.path
 from os import O_NONBLOCK
 from subprocess import Popen, PIPE
-import textwrap
 from tornado.ioloop import IOLoop
 from urlparse import urlparse
 
@@ -182,7 +181,6 @@ class ImageMagick(object):
             'installed_font' - The name of a font installed on the machine or None if using relative_font
             'relative_font' - The location of a local font, relative to font_dir
             'font_weight' - The font weight
-            'textwrap' - Number of characters you want the text to wrap at or None
         }
         """
         if style:
@@ -194,9 +192,6 @@ class ImageMagick(object):
             font = style['installed_font']
             if not font and font_dir:
                 font = os.path.join(font_dir, style['relative_font'])
-            textwrap_at = style['textwrap']
-            if textwrap_at:
-                t = '\n'.join(textwrap.wrap(t, textwrap_at))
             self.add_text(str(x), str(y), style['g'], str(pointsize), style['color'], t, font, str(style['font_weight']))
 
     def add_text(self, x, y, g, pointsize, color, text, font, font_weight, style="Normal", prepend=False):
