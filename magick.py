@@ -207,7 +207,7 @@ class ImageMagick(object):
                 "-font", font,
                 "-weight", font_weight,
                 "-style", style,
-                "-draw", 'text %s,%s "%s"' % (x, y, text)
+                "-draw", "text %s,%s '%s'" % (x, y, text.replace('\\', '\\\\').replace("'", '\\\''))
             ],
             prepend
         )
