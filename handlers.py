@@ -122,7 +122,8 @@ class ImageHandler(RequestHandler):
         texts = []
         styles = []
         for n in range(0,5):
-            text = self.get_argument("text_" + str(n), None)
+            # do no strip text because it will affect the md5
+            text = self.get_argument("text_" + str(n), None, False)
             style = self.get_argument("style_" + str(n), None)
             if text and style:
                 texts.append(text)
