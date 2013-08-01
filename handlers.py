@@ -4,6 +4,7 @@ import logging
 import os
 from random import randint
 from time import time
+from hashlib import md5
 from tornado.web import RequestHandler, asynchronous, HTTPError
 
 __all__ = ["ImageHandler", "CachingImageHandler", "FileCachingImageHandler"]
@@ -429,6 +430,16 @@ class FileCachingImageHandler(CachingImageHandler):
             filename = "+".join(self.magick.filters)
         if self.identifier:
             filename += "%s-" % self.identifier
+        if len(filename) + len(self.magick.format) + 1 > 200:
+            # Theoretically want to achieve: filename[:keep_length]+md5(filename)+"."+format == 255.
+            # Temporary file has overhead hence arbitrarily choose limit 200.
+            keep_length = 200 - 32 - 1 - len(self.magick.format)
+            m = md5()
+            tail = filename[keep_length:]
+            if type(tail) == unicode:
+                tail = tail.encode('utf-8')
+            m.update(tail)
+            filename = filename[:keep_length] + m.hexdigest()
         filename += ".%s" % self.magick.format
 
         # Build /(request.path)/(filename)
