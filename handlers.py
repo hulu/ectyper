@@ -41,6 +41,14 @@ class ImageHandler(RequestHandler):
     def parse_size(self, size):
         return self.parse_2d_param(size)
 
+    def parse_crop_coords(self, crop_coords):
+        if not crop_coords:
+            return None
+        ret = crop_coords.split(",")
+        if len(ret) != 4:
+            return None
+        return map(int, ret)
+
     def parse_overlay_list(self, input_str):
         """
         Parse the comma separated list of overlay images.  Throws a 500 if the
@@ -112,6 +120,7 @@ class ImageHandler(RequestHandler):
         reflection_height = self.get_argument("reflection_height", None)
         maintain_ratio = int(self.get_argument("maintain_ratio", 0)) == 1
         crop = int(self.get_argument("crop", 0)) == 1
+        crop_coords = self.parse_crop_coords(self.get_argument("crop_coords", None))
         crop_anchor = self.get_argument("crop_anchor", "center")
         post_crop_size = self.parse_size(self.get_argument("post_crop_size", None))
         post_crop_anchor = self.get_argument("post_crop_anchor", "center")
@@ -132,6 +141,13 @@ class ImageHandler(RequestHandler):
             else:
                 break
         text_validator = self.get_argument("text_validator", None)
+
+        if crop_coords:
+            direction = magick.GRAVITIES[crop_anchor]
+            x, y, w, h = crop_coords
+            magick.options.append("+repage")
+            magick.crop(w, h, x, y, direction)
+            magick.options.append("+repage")
 
         # size=&maintain_ratio=&crop=&crop_anchor=
         if size:
