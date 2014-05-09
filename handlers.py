@@ -41,6 +41,17 @@ class ImageHandler(RequestHandler):
     def parse_size(self, size):
         return self.parse_2d_param(size)
 
+    def parse_quality(self, quality):
+        if not quality:
+            return None
+
+        try:
+            quality = int(quality)
+        except ValueError:
+            return None
+
+        return quality
+
     def parse_crop_coords(self, crop_coords):
         if not crop_coords:
             return None
@@ -100,6 +111,7 @@ class ImageHandler(RequestHandler):
         magick = self.IMAGE_MAGICK_CLASS()
 
         size = self.parse_size(self.get_argument("size", None))
+        quality = self.parse_quality(self.get_argument("quality", None))
         
         extent = int(self.get_argument("extent", 0)) == 1
         extent_size = self.parse_size(self.get_argument("extent_size", self.get_argument("size", None)))
@@ -173,7 +185,10 @@ class ImageHandler(RequestHandler):
             if self.validate_texts(texts, text_validator):
                 for ts in self.get_text_styles(texts, styles):
                     magick.add_styled_text(ts['text'], ts['style'], self.local_font_dir, w, h)
-                
+          
+        if quality:
+            magick.set_quality(quality)
+      
         # extent=1&extent_anchor=&extent_background=&extent_compose=&extent_size=
         if extent and extent_size:
             (w, h) = extent_size

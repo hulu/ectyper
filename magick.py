@@ -265,6 +265,14 @@ class ImageMagick(object):
         opt = ['-resize', size]
         self._chain_op(name, opt, prepend)
 
+    def set_quality(self, quality):
+        """
+        Specifies the compression quality used in the jpg/png encoding
+        """
+        name = 'set_quality_%d' % quality
+        opt = ['-quality', '%d' % quality]
+        self._chain_op(name, opt, False)
+
     def constrain(self, w, h, prepend=False):
         """
         Constrain the image to the given size.  w and h are expected to be
@@ -397,7 +405,8 @@ class ImageMagick(object):
             # -quality 95
             #  9 = zlib compression level 9
             #  5 = adaptive filtering
-            opts.extend(["-quality", "95"])
+            if '-quality' not in self.options:
+                opts.extend(["-quality", "95"])
             
             # 8 bits per index
             opts.extend(["-depth", "8"])
@@ -406,7 +415,8 @@ class ImageMagick(object):
             opts.append("png32:-")
         elif self.format == self.JPEG:
             # Q=85 with 4:2:2 downsampling
-            opts.extend(["-quality", "85"])
+            if '-quality' not in self.options:
+                opts.extend(["-quality", "85"])
             opts.extend(["-sampling-factor", "2x1"])
 
             # Enforce RGB colorspace incase input image has a different
