@@ -133,6 +133,7 @@ class ImageMagick(object):
         opt = [
             '-gravity', 'NorthWest',
             '-alpha', 'on',
+            '-colorspace', 'sRGB',
             '-flip',
             '(',
                 '+clone', '-crop', crop_param, '-delete', '1-100',
