@@ -141,6 +141,7 @@ class ImageHandler(RequestHandler):
         contrast_stretch = self.parse_2d_param(self.get_argument("contrast_stretch", None))
         brightness_contrast = self.parse_2d_param(self.get_argument("brightness_contrast", None))
         overlay_image = self.parse_overlay_list(self.get_argument("overlay_image", None))
+        overlay_image_gravity = self.get_argument("overlay_image_gravity", "Center")
         texts = []
         styles = []
         for n in range(0,5):
@@ -170,7 +171,7 @@ class ImageHandler(RequestHandler):
                 for img in overlay_image:
                     img_path = os.path.join(self.local_image_dir, img)
                     if os.path.exists(img_path):
-                        magick.overlay_with_resize(0, 0, w, h, 'Center', img_path)
+                        magick.overlay_with_resize(0, 0, w, h, overlay_image_gravity, img_path)
                     else:
                         logger.warn('Requested overlay image that does not exist {0}'.format(img_path))
             if maintain_ratio and crop:
