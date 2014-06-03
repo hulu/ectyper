@@ -231,6 +231,8 @@ class ImageMagick(object):
         details).
         """
         opt_name = 'overlay_%d_%d_%s' % (x, y, os.path.basename(image_filename))
+        if g != "Center":
+            opt_name += "_" + g
         x = "+%d" % x if x >= 0 else str(x)
         y = "+%d" % y if y >= 0 else str(y)
         size = "%dx%d!" % (w, h) if w > 0 and h > 0 else ""
