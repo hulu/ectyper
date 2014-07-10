@@ -142,6 +142,8 @@ class ImageHandler(RequestHandler):
         brightness_contrast = self.parse_2d_param(self.get_argument("brightness_contrast", None))
         overlay_image = self.parse_overlay_list(self.get_argument("overlay_image", None))
         overlay_image_gravity = self.get_argument("overlay_image_gravity", "Center")
+        blur = self.parse_2d_param(self.get_argument("blur", None))
+        blur_prepend = int(self.get_argument('blur_prepend', 0)) == 1
         texts = []
         styles = []
         for n in range(0,5):
@@ -279,6 +281,10 @@ class ImageHandler(RequestHandler):
             magick.format = magick.PNG
             if format_param == "png16":
                 magick.rgb555_dither()
+
+        if blur:
+            (r, s) = blur
+            magick.blur(r,s,blur_prepend)
 
         self.magick = magick
 

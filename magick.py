@@ -388,6 +388,22 @@ class ImageMagick(object):
         ]
         self._chain_op(name, opt, False)
 
+    def blur(self, radius, sigma, prepend=False):
+        """
+        The important parameter in the above is the sigma value. It can be
+        thought of as an approximation of just how much your want the image
+        to 'spread' or blur, in pixels. Think of it as the size of the brush
+        used to blur the image. The numbers are floating point values, so you
+        can use a very small value like '0.5'.
+
+        The radius, is also important as it controls how big an area the
+        operator should look at when spreading pixels. This value should
+        typically be either '0' or at a minimum double that of the sigma.
+        """
+        name = "blur_%dx%d_%s" % (radius, sigma, prepend)
+        blur_params = "%dx%d" % (radius, sigma)
+        self._chain_op(name, ['-blur', blur_params], prepend)
+
     def get_mime_type(self):
         """
         Return the mime type for the current set of options.
