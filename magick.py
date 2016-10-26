@@ -13,11 +13,13 @@ __all__ = ["ImageMagick", "is_remote"]
 
 logger = logging.getLogger("ectyper")
 
+
 def is_remote(path):
     """
     Returns true if the given path is a remote HTTP or HTTPS URL.
     """
     return urlparse(path).scheme in set(["http", "https"])
+
 
 def _valid_pct(s):
     """
@@ -34,6 +36,7 @@ def _valid_pct(s):
 
     return False
 
+
 def _proc_failed(proc):
     """
     Returns true if the given subprocess.Popen has terminated and
@@ -41,6 +44,7 @@ def _proc_failed(proc):
     """
     rcode = proc.poll()
     return rcode is not None and rcode != 0
+
 
 def _non_blocking_fileno(fh):
     fd = fh.fileno()
@@ -52,6 +56,7 @@ def _non_blocking_fileno(fh):
         logger.warning("Couldn't setup non-blocking pipe: %s" % str(e))
     return fd
 
+
 def _make_blocking(fd):
     try:
         flags = fcntl(fd, F_GETFL)
@@ -60,12 +65,14 @@ def _make_blocking(fd):
         # Failed to set to blocking, warn and continue.
         logger.warning("Couldn't set blocking: %s" % str(e))
 
+
 def _list_prepend(dest, src):
     """
     Prepends the src to the dest list in place.
     """
     for i in xrange(len(src)):
-        dest.insert(0, src[len(src)-i-1])
+        dest.insert(0, src[len(src) - i - 1])
+
 
 def _proc_terminate(proc):
     try:
@@ -75,6 +82,7 @@ def _proc_terminate(proc):
     except OSError, e:
         if e.errno != ESRCH:
             raise
+
 
 class ImageMagick(object):
     """
@@ -136,9 +144,9 @@ class ImageMagick(object):
             '-colorspace', 'sRGB',
             '-flip',
             '(',
-                '+clone', '-crop', crop_param, '-delete', '1-100',
-                '-channel', 'G', '-fx', '%0.2f-(j/h)*%0.2f' % (top_alpha, rng),
-                '-separate',
+            '+clone', '-crop', crop_param, '-delete', '1-100',
+            '-channel', 'G', '-fx', '%0.2f-(j/h)*%0.2f' % (top_alpha, rng),
+            '-separate',
             ')',
             '-alpha', 'off', '-compose', 'copy_opacity', '-composite',
             '-crop', crop_param, '-delete', '1-100'
@@ -185,22 +193,23 @@ class ImageMagick(object):
         }
         """
         if style:
-            w_mod = w/style['base_w']
-            h_mod = h/style['base_h']
+            w_mod = w / style['base_w']
+            h_mod = h / style['base_h']
             x = style['x'] * w_mod
             y = style['y'] * h_mod
             pointsize = style['pointsize'] * h_mod
             font = style['installed_font']
             if not font and font_dir:
                 font = os.path.join(font_dir, style['relative_font'])
-            self.add_text(str(x), str(y), style['g'], str(pointsize), style['color'], t, font, str(style['font_weight']))
+            self.add_text(str(x), str(y), style['g'], str(pointsize), style['color'], t, font,
+                          str(style['font_weight']))
 
     def add_text(self, x, y, g, pointsize, color, text, font, font_weight, style="Normal", prepend=False):
         stripped_text = ''.join(c for c in text if c.isalnum())
         stripped_text = stripped_text[:64] if len(stripped_text) > 64 else stripped_text
         check = crc32(text.encode('utf-8'))
         self._chain_op(
-            'text_%s%s%s_%s_%s' % (g, x , y, stripped_text, check),
+            'text_%s%s%s_%s_%s' % (g, x, y, stripped_text, check),
             [
                 "-gravity", g,
                 "-pointsize", pointsize,
@@ -245,7 +254,7 @@ class ImageMagick(object):
                 '-composite'
             ],
             prepend)
-    
+
     def resize(self, w, h, maintain_ratio, will_crop, prepend=False):
         """
         Resizes the image to the given size.  w and h are expected to be
@@ -377,12 +386,12 @@ class ImageMagick(object):
         opt = [
             '-background', 'white',
             '(',
-                '+clone', '-channel', 'RGB', '-separate',
-                '-type', 'TrueColor', '-remap', _colormap,
+            '+clone', '-channel', 'RGB', '-separate',
+            '-type', 'TrueColor', '-remap', _colormap,
             ')',
             '(',
-                '-clone', '0', '-channel', 'A', '-separate',
-                '-alpha', 'copy',
+            '-clone', '0', '-channel', 'A', '-separate',
+            '-alpha', 'copy',
             ')',
             '-delete', '0', '-channel', 'RGBA', '-combine'
         ]
@@ -403,6 +412,16 @@ class ImageMagick(object):
         name = "blur_%dx%d_%s" % (radius, sigma, prepend)
         blur_params = "%dx%d" % (radius, sigma)
         self._chain_op(name, ['-blur', blur_params], prepend)
+
+    def custom_options(self, name, params, prepend=False):
+        """
+        Adds the ability for handlers to add their own commands.
+        :param name: What is added to filename
+        :param params: List of commands to be added. Ex. ['-colorspace', 'sRGB']
+        :param prepend: Whether the command should prepend the current list of commands
+        """
+        if isinstance(name, basestring) and isinstance(params, list):
+            self._chain_op(name, params, prepend)
 
     def get_mime_type(self):
         """
@@ -426,7 +445,7 @@ class ImageMagick(object):
             #  5 = adaptive filtering
             if '-quality' not in self.options:
                 opts.extend(["-quality", "95"])
-            
+
             # 8 bits per index
             opts.extend(["-depth", "8"])
 
@@ -490,13 +509,13 @@ class ImageMagick(object):
                 return
 
         command = self.convert_cmdline(path, source is not None)
-        logger.debug("CONVERT %s (opts: %s)" % (path, repr(self.options)))
+        logger.debug("CONVERT %s (opts: %s) COMMAND %s" % (path, repr(self.options),command))
 
         convert = Popen(command,
-            stdin=source.stdout if source else None,
-            stdout=PIPE,
-            stderr=PIPE,
-            close_fds=True)
+                        stdin=source.stdout if source else None,
+                        stdout=PIPE,
+                        stderr=PIPE,
+                        close_fds=True)
 
         if source:
             source.stdout.close()
