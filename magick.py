@@ -413,7 +413,7 @@ class ImageMagick(object):
         blur_params = "%dx%d" % (radius, sigma)
         self._chain_op(name, ['-blur', blur_params], prepend)
 
-    def custom_options(self, name, params, prepend=False):
+    def add_custom_options(self, name, params, prepend=False):
         """
         Adds the ability for handlers to add their own commands.
         :param name: What is added to filename
@@ -509,7 +509,7 @@ class ImageMagick(object):
                 return
 
         command = self.convert_cmdline(path, source is not None)
-        logger.debug("CONVERT %s (opts: %s) COMMAND %s" % (path, repr(self.options),command))
+        logger.debug("CONVERT %s (opts: %s) COMMAND %s" % (path, repr(self.options), command))
 
         convert = Popen(command,
                         stdin=source.stdout if source else None,
