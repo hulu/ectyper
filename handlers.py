@@ -1,15 +1,17 @@
-from errno import EEXIST
-from ectyper.magick import ImageMagick, is_remote
 import logging
 import os
+from errno import EEXIST
+from hashlib import md5
 from random import randint
 from time import time
-from hashlib import md5
+
+from ectyper.magick import ImageMagick, is_remote
 from tornado.web import RequestHandler, asynchronous, HTTPError
 
 __all__ = ["ImageHandler", "CachingImageHandler", "FileCachingImageHandler"]
 
 logger = logging.getLogger("ectyper")
+
 
 class ImageHandler(RequestHandler):
     """
@@ -112,13 +114,13 @@ class ImageHandler(RequestHandler):
 
         size = self.parse_size(self.get_argument("size", None))
         quality = self.parse_quality(self.get_argument("quality", None))
-        
+
         extent = int(self.get_argument("extent", 0)) == 1
         extent_size = self.parse_size(self.get_argument("extent_size", self.get_argument("size", None)))
         extent_anchor = self.get_argument("extent_anchor", "center")
         extent_background = self.get_argument("extent_background", "#00000000")
         extent_compose = self.restrict_compose_method(self.get_argument("extent_compose", "over"))
-        
+
         splice = int(self.get_argument("splice", 0)) == 1
         splice_size = self.parse_size(self.get_argument("splice_size", self.get_argument("size", None)))
         splice_anchor = self.get_argument("splice_anchor", "center")
@@ -128,7 +130,7 @@ class ImageHandler(RequestHandler):
         # shift is a custom setting that will use splice to shift an extent in a desired direction
         extent_shift = self.parse_size(self.get_argument('extent_shift', None))
         shift_align = None
-        
+
         reflection_height = self.get_argument("reflection_height", None)
         maintain_ratio = int(self.get_argument("maintain_ratio", 0)) == 1
         crop = int(self.get_argument("crop", 0)) == 1
@@ -146,7 +148,7 @@ class ImageHandler(RequestHandler):
         blur_prepend = int(self.get_argument('blur_prepend', 0)) == 1
         texts = []
         styles = []
-        for n in range(0,5):
+        for n in range(0, 5):
             # do no strip text because it will affect the md5
             text = self.get_argument("text_" + str(n), None, False)
             style = self.get_argument("style_" + str(n), None)
@@ -188,16 +190,16 @@ class ImageHandler(RequestHandler):
             if self.validate_texts(texts, text_validator):
                 for ts in self.get_text_styles(texts, styles):
                     magick.add_styled_text(ts['text'], ts['style'], self.local_font_dir, w, h)
-          
+
         if quality:
             magick.set_quality(quality)
-      
+
         # extent=1&extent_anchor=&extent_background=&extent_compose=&extent_size=
         if extent and extent_size:
             (w, h) = extent_size
             if extent_shift:
                 (shift_left, shift_top) = extent_shift
-                
+
                 # Adjust extent by desired shift dimensions
                 w = w - abs(shift_left)
                 h = h - abs(shift_top)
@@ -281,10 +283,13 @@ class ImageHandler(RequestHandler):
             magick.format = magick.PNG
             if format_param == "png16":
                 magick.rgb555_dither()
+        else:
+            # Force this in earlier to fix weird color banding issues
+            magick.options = ['-colorspace', 'sRGB'] + magick.options
 
         if blur:
             (r, s) = blur
-            magick.blur(r,s,blur_prepend)
+            magick.blur(r, s, blur_prepend)
 
         self.magick = magick
 
@@ -296,7 +301,6 @@ class ImageHandler(RequestHandler):
                 text_styles.append({'text': t, 'style': style})
         return text_styles
 
-
     def validate_texts(self, texts, validator):
         return True
 
@@ -306,11 +310,11 @@ class ImageHandler(RequestHandler):
     def restrict_compose_method(self, method):
         default_method = "over"
         supported_methods = [
-            'over', 
-            'add', 
+            'over',
+            'add',
             'subtract',
-            ]
-        return method if method in supported_methods else default_method 
+        ]
+        return method if method in supported_methods else default_method
 
     def set_content_type(self):
         """
@@ -335,9 +339,9 @@ class ImageHandler(RequestHandler):
 
         self.set_content_type()
         self.magick.convert(source,
-            chunk_ready=self.on_conv_chunk_ready,
-            complete=self.on_conv_complete,
-            error=self.on_conv_error) 
+                            chunk_ready=self.on_conv_chunk_ready,
+                            complete=self.on_conv_complete,
+                            error=self.on_conv_error)
 
     def on_conv_error(self):
         """
@@ -361,11 +365,13 @@ class ImageHandler(RequestHandler):
         """
         self.finish()
 
+
 class CachingImageHandler(ImageHandler):
     """
     ImageHandler that caches requests as necessary. You should override the
     get_cache_name, on_cache_hit and on_cache_write methods.
     """
+
     @asynchronous
     def get(self, *args):
         self.calculate_options()
@@ -423,13 +429,14 @@ class CachingImageHandler(ImageHandler):
         """
         pass
 
+
 class FileCachingImageHandler(CachingImageHandler):
     """
     Image handler that caches files on disk according to the filter chain defined
     by the query.
     """
 
-    CACHE_PATH  = '/tmp'
+    CACHE_PATH = '/tmp'
     CREATE_MODE = 0755
 
     def __init__(self, *args, **kwargs):
@@ -512,7 +519,7 @@ class FileCachingImageHandler(CachingImageHandler):
             # yet exist
             if not os.path.exists(self.final_path) and \
                     not os.path.exists(self.write_path):
-                dname = os.path.dirname(self.write_path) 
+                dname = os.path.dirname(self.write_path)
 
                 # Create intermediate directories as needed
                 try:

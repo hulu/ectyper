@@ -115,6 +115,7 @@ class ImageMagick(object):
         self.convert_path = None
         self.curl_path = None
         self.ioloop = IOLoop.instance()
+        self.comment = '\'\''
 
     def _chain_op(self, name, operation, prepend):
         """
@@ -433,6 +434,13 @@ class ImageMagick(object):
             return "image/jpeg"
         return "application/octet-stream"
 
+    def set_comment(self, comment):
+        """
+        Sets a comment on the image.
+        :param comment: A string to add to the comment metadata
+        """
+        self.comment = '\'' + comment + '\''
+
     def format_options(self):
         """
         Returns standard ImageMagick options for converting into this instance's format.
@@ -463,8 +471,14 @@ class ImageMagick(object):
 
             # Strip EXIF data
             opts.extend(["-strip"])
+
+            # Add in comment here to prevent it from being stripped
+            opts.extend(['-set', 'comment', self.comment])
+
             opts.append("jpeg:-")
         else:
+            opts.extend(['-set', 'comment', self.comment])
+
             # Default to whatever is defined in format
             opts.append("%s:-" % self.format)
 
